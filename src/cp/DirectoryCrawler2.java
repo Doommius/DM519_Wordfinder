@@ -29,7 +29,7 @@ public class DirectoryCrawler2 {
 
         List<Result> list = run(StartingDir.toPath());
 
-        list.forEach(i -> System.out.println(i.toString()));
+        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
         System.out.println("Parsing complete");
 
         long endTime = System.currentTimeMillis();
@@ -75,11 +75,15 @@ public class DirectoryCrawler2 {
 //                    System.out.println(path);
                 if (Files.isDirectory(path)) {
                     directoryCrawler(path);
-                } else {
+
+                    } else {
                     if (path.toString().endsWith(filetype)) {
 
 //                        System.out.println(path.toString());
-                        filehandler(path);
+                        executor.submit(
+                                () ->  filehandler(path)
+                        );
+
                     }
                 }
             }
