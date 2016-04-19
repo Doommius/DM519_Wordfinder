@@ -8,16 +8,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DirectoryCrawler2 {
-    private static ExecutorService executor = Executors.newFixedThreadPool(5);
+    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
+//    public static ExecutorService newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
     private static String filetype = "txt";
-    private static String lookingfor = "semper";
+    private static String lookingfor = "Jervelund";
     private static ArrayList results = new ArrayList<Result>();
-
+    private static AtomicInteger threadCounter = new AtomicInteger( 0 );
     /*
 
      */
@@ -27,9 +30,13 @@ public class DirectoryCrawler2 {
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
         File StartingDir = new File("C:/Users/mark/OneDrive/sdu/testfolder");
 
-        List<Result> list = run(StartingDir.toPath());
+        try {
+            List<Result> list = run(StartingDir.toPath());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
+//        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
         System.out.println("Parsing complete");
 
         long endTime = System.currentTimeMillis();
@@ -41,21 +48,26 @@ public class DirectoryCrawler2 {
     Starts the Crawler, and counts how long time the problem takes to run
         @param path is the path the problem starts crawling from.
      */
-    public static List<Result> run(Path path) {
+    public static List<Result> run(Path path) throws InterruptedException {
 //        ArrayList results = new ArrayList<Result>();
 //        Path path = Paths.get("C:/Users/user/OneDrive/randomuni");
 
         directoryCrawler(path);
+        System.out.println("Crawler is done");
+        System.out.println();
+        while(threadCounter.get() != 0){
 
-        executor.shutdown();
-        try {
-            executor.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            //wating for queue to empty
         }
+//When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
+        executor.shutdown();
+
+        boolean isTerminated =executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
+
+        System.out.println("Found " + results.size() + " Results");
         List list = null;
         int j = 0;
-        results.forEach(i -> list.add(i));
+//        results.forEach(i -> list.add(i));
 
 
         return null;
@@ -72,19 +84,17 @@ public class DirectoryCrawler2 {
                 DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
         ) {
             for (Path path : dirStream) {
+//                System.out.println(path);
 //                    System.out.println(path);
                 if (Files.isDirectory(path)) {
                     directoryCrawler(path);
 
-                    } else {
-                    if (path.toString().endsWith(filetype)) {
-
+                } else if (path.toString().endsWith(filetype)) {
 //                        System.out.println(path.toString());
-                        executor.submit(
-                                () ->  filehandler(path)
-                        );
-
-                    }
+                    threadCounter.incrementAndGet();
+                    executor.submit(
+                            () -> filehandler(path)
+                    );
                 }
             }
         } catch (IOException e) {
@@ -108,6 +118,7 @@ public class DirectoryCrawler2 {
 //                    System.out.println(linenumber);
                 final int finalline = linenumber;
                 final String currentLine = line;
+                threadCounter.incrementAndGet();
                 executor.submit(
                         () -> wordchecker(currentLine, path, finalline)
                 );
@@ -121,7 +132,7 @@ public class DirectoryCrawler2 {
 
         }
 
-
+        threadCounter.decrementAndGet();
     }
 
     /*
@@ -134,7 +145,7 @@ public class DirectoryCrawler2 {
             String[] words = line.split("\\s+");
             for (String word : words) {
                 if (lookingfor.equals(word)) synchronized (results) {
-//                    System.out.println("Found result at " + path + " On line " + linenumber);
+//                    System.out.println(results.size());
                     results.add(new Result() {
                         @Override
                         public Path path() {
@@ -155,6 +166,7 @@ public class DirectoryCrawler2 {
 
 
         }
+        threadCounter.decrementAndGet();
     }
 }
 
