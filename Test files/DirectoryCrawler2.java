@@ -18,7 +18,7 @@ public class DirectoryCrawler2 {
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
 //    public static ExecutorService newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
     private static String filetype = "txt";
-    private static String lookingfor = "Jervelund";
+    private static String lookingfor;
     private static ArrayList results = new ArrayList<Result>();
     private static AtomicInteger threadCounter = new AtomicInteger( 0 );
     /*
@@ -29,12 +29,10 @@ public class DirectoryCrawler2 {
         long startTime = System.currentTimeMillis();
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
         File StartingDir = new File("C:/Users/mark/OneDrive/sdu/testfolder");
+        String word = "ipsum";
 
-        try {
-            List<Result> list = run(StartingDir.toPath());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        List<Result> list = run(word,StartingDir.toPath());
+
 
 //        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
         System.out.println("Parsing complete");
@@ -48,21 +46,26 @@ public class DirectoryCrawler2 {
     Starts the Crawler, and counts how long time the problem takes to run
         @param path is the path the problem starts crawling from.
      */
-    public static List<Result> run(Path path) throws InterruptedException {
+    public static List<Result> run(String word, Path path){
 //        ArrayList results = new ArrayList<Result>();
 //        Path path = Paths.get("C:/Users/user/OneDrive/randomuni");
-
+        lookingfor = word;
         directoryCrawler(path);
         System.out.println("Crawler is done");
         System.out.println();
         while(threadCounter.get() != 0){
-
             //wating for queue to empty
         }
 //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
+
         executor.shutdown();
 
-        boolean isTerminated =executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
+
+        try {
+            executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         System.out.println("Found " + results.size() + " Results");
         List list = null;
@@ -70,7 +73,7 @@ public class DirectoryCrawler2 {
 //        results.forEach(i -> list.add(i));
 
 
-        return null;
+        return list;
     }
 
     /*
@@ -87,6 +90,7 @@ public class DirectoryCrawler2 {
 //                System.out.println(path);
 //                    System.out.println(path);
                 if (Files.isDirectory(path)) {
+
                     directoryCrawler(path);
 
                 } else if (path.toString().endsWith(filetype)) {
@@ -146,6 +150,7 @@ public class DirectoryCrawler2 {
             for (String word : words) {
                 if (lookingfor.equals(word)) synchronized (results) {
 //                    System.out.println(results.size());
+//                    System.out.println("Result at "+path+" on line "+linenumber);
                     results.add(new Result() {
                         @Override
                         public Path path() {
