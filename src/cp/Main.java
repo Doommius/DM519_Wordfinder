@@ -13,13 +13,13 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
 
-        long startTime = System.currentTimeMillis();
+
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
         /**
         *     Where you you want to find the word.
         */
 // File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
-        File StartingDir = new File("C:/Users/Mark/OneDrive/SDU/testfolder");
+        File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
         		/**
 		* The word you want to find.
         */
@@ -27,8 +27,10 @@ public class Main {
 
 //        find all
         List<Result> list = null;
+        long startTime = System.currentTimeMillis();
 
         list = WordFinder.findAll(word,StartingDir.toPath());
+
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime + " ms");
