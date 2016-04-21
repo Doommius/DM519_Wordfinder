@@ -152,7 +152,34 @@ public class WordFinder
 
 		threadCounter.decrementAndGet();
 	}
-
+    private static void filechecker(Path path) {
+        try {
+            BufferedReader reader = Files.newBufferedReader(path);
+            String line;
+            int linenumber = 0;
+            while ((line = reader.readLine()) != null) {
+                linenumber += 1;
+                
+                    String[] words = line.split("\\s+");
+                    for (String word : words) {
+                        if (lookingfor.equals(word)) synchronized (results) {
+                            final int lineNumber = linenumber
+                            System.out.println("Result at " + path + " on line " + linenumber);
+                            results.add(new Result() {
+                                @Override
+                                public Path path() {
+                                    return path;
+                                }
+                                @Override
+                                public int line() {
+                                    return lineNumber;
+                                }
+                            });
+                        }                                    }            }
+        } catch (IOException e) {
+        }
+        threadCounter.decrementAndGet();
+    }
 	/*
     Checks the lines for the word @param lookingfor
      */
