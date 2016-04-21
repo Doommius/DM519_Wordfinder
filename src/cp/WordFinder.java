@@ -72,7 +72,14 @@ public class WordFinder
 	 */
 	public static Result findAny( String word, Path dir )
 	{
-		throw new UnsupportedOperationException();
+		lookingfor = word;
+		directoryCrawler(dir);
+		while(results.isEmpty()) System.out.print("");
+		//When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
+		executor.shutdownNow();
+		Result result = (Result) results.get(0);
+		//System.out.println("Found result at "+result.path()+" on line "+result.line());
+		return result;
 	}
 
 	/**
@@ -109,10 +116,30 @@ public class WordFinder
 
 				} else if (path.toString().endsWith(filetype)) {
 //                        System.out.println(path.toString());
+//					System.out.println(path.toFile().length());
+// 						System.out.println(path);
 					threadCounter.incrementAndGet();
-					executor.submit(
-							() -> filehandler(path)
-					);
+					/*
+					Test with spilting all files up
+					 */
+//					executor.submit(
+//							() -> filehandler(path)
+//					);
+					/*
+					Test with giving small files < 1 MB to thread that does it all.
+					 */
+					if (path.toFile().length() < 1000000){
+
+						executor.submit(
+								() -> filechecker(path)
+						);
+					}else {
+
+
+						executor.submit(
+								() -> filehandler(path)
+						);
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -124,7 +151,7 @@ public class WordFinder
     Handles files, Spilts the file into lines and feeds the lines to the word checkers tread
      */
 	private static void filehandler(Path path) {
-//            System.out.println("running file halder");
+//            System.out.println("running file handler");
 //        System.out.println("checking file " + path);
 		try {
 			BufferedReader reader = Files.newBufferedReader(path);
@@ -152,6 +179,7 @@ public class WordFinder
 
 		threadCounter.decrementAndGet();
 	}
+
     private static void filechecker(Path path) {
         try {
             BufferedReader reader = Files.newBufferedReader(path);
@@ -163,8 +191,8 @@ public class WordFinder
                     String[] words = line.split("\\s+");
                     for (String word : words) {
                         if (lookingfor.equals(word)) synchronized (results) {
-                            final int lineNumber = linenumber
-                            System.out.println("Result at " + path + " on line " + linenumber);
+                            final int lineNumber = linenumber;
+                            //System.out.println("Result at " + path + " on line " + linenumber);
                             results.add(new Result() {
                                 @Override
                                 public Path path() {
@@ -190,7 +218,7 @@ public class WordFinder
 			String[] words = line.split("\\s+");
 			for (String word : words) {
 				if (lookingfor.equals(word)) synchronized (results) {
-//                    System.out.println(results.size());
+                    //System.out.println(results.size());
 //                    System.out.println("Result at "+path+" on line "+linenumber);
 					results.add(new Result() {
 						@Override
