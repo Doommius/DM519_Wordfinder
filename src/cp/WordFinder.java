@@ -254,23 +254,17 @@ public class WordFinder {
 
             while ((line = reader.readLine()) != null) {
                 lines.clear();
-                lines.add(line);
+                if (line.trim().length() > 0){lines.add(line);}
 
-                int i = 1;
-                while (i < linestothread && ((line = reader.readLine()) != null)) {
-                    lines.add(line);
-//                    System.out.println("adding ");
-//                    System.out.println(line);
-//                    System.out.println("to list");
-//                    System.out.println("at location "+i);
-                    i++;
-//                    System.out.println("adding element to place "+i+" "+lines[i]);
+                while (lines.size() < linestothread && ((line = reader.readLine()) != null)) {
+                    if (line.trim().length() > 0){lines.add(line);}
                 }
 
                 final int currentline = linenumber;
+                final List<String> finallines = lines;
                 threadCounter.incrementAndGet();
                 executor.submit(
-                        () -> wordchecker(lines, path, currentline)
+                        () -> wordchecker(finallines, path, currentline)
                 );
                 linenumber += (linestothread);
             }
@@ -284,7 +278,7 @@ public class WordFinder {
     /*
     Checks the lines for the word @param lookingfor
      */
-    private static void wordchecker(ArrayList<String> lines, Path path, int linenumber) {
+    private static void wordchecker(List<String> lines, Path path, int linenumber) {
 //            System.out.println("running work checker");
 //        System.out.println(lines.length+" at line " + linenumber+" "+lines[0]);
         for (String line : lines) {
