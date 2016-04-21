@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DirectoryCrawler2 {
+public class DirectoryCrawler {
 
     private static String filetype = "txt";
     private static String lookingfor;
