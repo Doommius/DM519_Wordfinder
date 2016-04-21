@@ -1,6 +1,7 @@
 package cp;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -25,17 +26,21 @@ public class Main {
         String word = "ipsum";
 
 //        find all
-//		List<Result> list = WordFinder.findAll(word,StartingDir.toPath());
-//		System.out.println("Found " + list.size() + " Results");
-//
-//        find any test
-//		Result result = WordFinder.findAny(word,StartingDir.toPath());
-//		System.out.println("Found result at "+result.path()+" on line "+result.line());
-        WordFinder.stats(StartingDir.toPath());
+        List<Result> list = null;
 
-//        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
+        list = WordFinder.findAll(word,StartingDir.toPath());
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime + " ms");
+        System.out.println("Found " + list.size() + " Results");
+
+//
+//        find any test
+//		Result result = WordFinder2.findAny(word,StartingDir.toPath());
+//		System.out.println("Found result at "+result.path()+" on line "+result.line());
+        //WordFinder.stats(StartingDir.toPath());
+
+//        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
+
     }
 }

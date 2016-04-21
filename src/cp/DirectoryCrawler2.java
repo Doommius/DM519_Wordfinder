@@ -15,20 +15,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DirectoryCrawler2 {
-    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
-//    public static ExecutorService newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
+
     private static String filetype = "txt";
     private static String lookingfor;
     private static ArrayList results = new ArrayList<Result>();
-    private static AtomicInteger threadCounter = new AtomicInteger( 0 );
-    /*
+        /*
 
      */
     public static void main(String[] args) {
 
         long startTime = System.currentTimeMillis();
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
-        File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
+        File StartingDir = new File("C:/Users/Mark/OneDrive/SDU/testfolder");
         String word = "ipsum";
 
         List<Result> list = run(word,StartingDir.toPath());
@@ -52,20 +50,12 @@ public class DirectoryCrawler2 {
         lookingfor = word;
         directoryCrawler(path);
         System.out.println("Crawler is done");
-        System.out.println();
-        while(threadCounter.get() != 0){
+
+
             //wating for queue to empty
-        }
+
 //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
 
-        executor.shutdown();
-
-
-        try {
-            executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         System.out.println("Found " + results.size() + " Results");
         List list = null;
@@ -95,10 +85,8 @@ public class DirectoryCrawler2 {
 
                 } else if (path.toString().endsWith(filetype)) {
 //                        System.out.println(path.toString());
-                    threadCounter.incrementAndGet();
-                    executor.submit(
-                            () -> filehandler(path)
-                    );
+                    filehandler(path);
+
                 }
             }
         } catch (IOException e) {
@@ -122,10 +110,9 @@ public class DirectoryCrawler2 {
 //                    System.out.println(linenumber);
                 final int finalline = linenumber;
                 final String currentLine = line;
-                threadCounter.incrementAndGet();
-                executor.submit(
-                        () -> wordchecker(currentLine, path, finalline)
-                );
+
+                wordchecker(currentLine, path, finalline);
+
 
 //                    executor.shutdown();
 //                    executor.awaitTermination( 1, TimeUnit.MINUTES );
@@ -136,7 +123,7 @@ public class DirectoryCrawler2 {
 
         }
 
-        threadCounter.decrementAndGet();
+
     }
 
     /*
@@ -171,7 +158,7 @@ public class DirectoryCrawler2 {
 
 
         }
-        threadCounter.decrementAndGet();
+
     }
 }
 
