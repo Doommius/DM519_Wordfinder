@@ -94,7 +94,65 @@ public class WordFinder
 	 */
 	public static Stats stats( Path dir )
 	{
-		throw new UnsupportedOperationException();
+		return new Stats() {
+			/**
+			 * Returns the number of times a word was found.
+			 * @param word the word
+			 * @return the number of times the word was found
+			 */
+			@Override
+			public int occurrences(String word) {
+				return findAll(word,dir).size();
+			}
+			/**
+			 * Returns the list of results in which a word was found.
+			 * @param word the word
+			 * @return the list of results in which the word was found
+			 */
+
+			@Override
+			public List<Result> foundIn(String word) {
+				return findAll(word, dir);
+			}
+			/**
+			 * Returns the word that was found the most times.
+			 * @return the word that was found the most times
+			 */
+
+			@Override
+			public String mostFrequent() {
+				return null;
+			}
+
+			/**
+			 * Returns the word that was found the least times.
+			 * @return the word that was found the least times
+			 */
+
+			@Override
+			public String leastFrequent() {
+				return null;
+			}
+			/**
+			 * Returns a list of all the words found.
+			 * @return a list of all the words found
+			 */
+
+			@Override
+			public List<String> words() {
+				return null;
+			}
+			/**
+			 * Returns a list of all the words found, ordered from the least frequently occurring (first of the list)
+			 * to the most frequently occurring (last of the list).
+			 * @return a list of all the words found, ordered from the least to the most frequently occurring
+			 */
+			@Override
+			public List<String> wordsByOccurrences() {
+				return null;
+			}
+		};
+
 	}
 
 	/*
