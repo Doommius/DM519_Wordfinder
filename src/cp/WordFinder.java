@@ -188,7 +188,7 @@ public class WordFinder {
                     if (path.toFile().length() < 1000000) {
 
                         executor.submit(
-                                () -> filechecker(path)
+                                () -> filehandler(path)
                         );
                     } else {
                         filehandler(path);
@@ -249,14 +249,22 @@ public class WordFinder {
 //            System.out.println("opening file");
             String line;
             int linenumber = 0;
-            int linestothread = 999;
-            String[] lines = new String[linestothread];
+            int linestothread = 1000;
+            ArrayList<String> lines = new ArrayList<String>();
 
             while ((line = reader.readLine()) != null) {
-                lines[0] = line;
+                lines.clear();
+                lines.add(line);
 
-                for (int i = 1; i < linestothread; i++) {
-                    lines[i] = line + reader.readLine();
+                int i = 1;
+                while (i < linestothread && ((line = reader.readLine()) != null)) {
+                    lines.add(line);
+//                    System.out.println("adding ");
+//                    System.out.println(line);
+//                    System.out.println("to list");
+//                    System.out.println("at location "+i);
+                    i++;
+//                    System.out.println("adding element to place "+i+" "+lines[i]);
                 }
 
                 final int currentline = linenumber;
@@ -264,7 +272,7 @@ public class WordFinder {
                 executor.submit(
                         () -> wordchecker(lines, path, currentline)
                 );
-                linenumber += (linestothread+1);
+                linenumber += (linestothread);
             }
         } catch (IOException e) {
         }
@@ -276,9 +284,11 @@ public class WordFinder {
     /*
     Checks the lines for the word @param lookingfor
      */
-    private static void wordchecker(String[] lines, Path path, int linenumber) {
+    private static void wordchecker(ArrayList<String> lines, Path path, int linenumber) {
 //            System.out.println("running work checker");
+//        System.out.println(lines.length+" at line " + linenumber+" "+lines[0]);
         for (String line : lines) {
+
             String[] words = line.split("\\s+");
             for (String word : words) {
                 if (lookingfor.equals(word)) {
@@ -291,6 +301,7 @@ public class WordFinder {
                             public Path path() {
                                 return path;
                             }
+
                             @Override
                             public int line() {
                                 return finalnumber;
@@ -300,8 +311,9 @@ public class WordFinder {
                 }
             }
             linenumber++;
-        }
+        };
         threadCounter.decrementAndGet();
+//        System.out.println(linenumber);
     }
 }
 
