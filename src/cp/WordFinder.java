@@ -72,14 +72,7 @@ public class WordFinder
 	 */
 	public static Result findAny( String word, Path dir )
 	{
-		lookingfor = word;
-		directoryCrawler(dir);
-		while(results.isEmpty()) System.out.print("");
-		//When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
-		executor.shutdownNow();
-		Result result = (Result) results.get(0);
-		//System.out.println("Found result at "+result.path()+" on line "+result.line());
-		return result;
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -94,65 +87,7 @@ public class WordFinder
 	 */
 	public static Stats stats( Path dir )
 	{
-		return new Stats() {
-			/**
-			 * Returns the number of times a word was found.
-			 * @param word the word
-			 * @return the number of times the word was found
-			 */
-			@Override
-			public int occurrences(String word) {
-				return findAll(word,dir).size();
-			}
-			/**
-			 * Returns the list of results in which a word was found.
-			 * @param word the word
-			 * @return the list of results in which the word was found
-			 */
-
-			@Override
-			public List<Result> foundIn(String word) {
-				return findAll(word, dir);
-			}
-			/**
-			 * Returns the word that was found the most times.
-			 * @return the word that was found the most times
-			 */
-
-			@Override
-			public String mostFrequent() {
-				return null;
-			}
-
-			/**
-			 * Returns the word that was found the least times.
-			 * @return the word that was found the least times
-			 */
-
-			@Override
-			public String leastFrequent() {
-				return null;
-			}
-			/**
-			 * Returns a list of all the words found.
-			 * @return a list of all the words found
-			 */
-
-			@Override
-			public List<String> words() {
-				return null;
-			}
-			/**
-			 * Returns a list of all the words found, ordered from the least frequently occurring (first of the list)
-			 * to the most frequently occurring (last of the list).
-			 * @return a list of all the words found, ordered from the least to the most frequently occurring
-			 */
-			@Override
-			public List<String> wordsByOccurrences() {
-				return null;
-			}
-		};
-
+		throw new UnsupportedOperationException();
 	}
 
 	/*
@@ -174,30 +109,10 @@ public class WordFinder
 
 				} else if (path.toString().endsWith(filetype)) {
 //                        System.out.println(path.toString());
-//					System.out.println(path.toFile().length());
-// 						System.out.println(path);
 					threadCounter.incrementAndGet();
-					/*
-					Test with spilting all files up
-					 */
-//					executor.submit(
-//							() -> filehandler(path)
-//					);
-					/*
-					Test with giving small files < 1 MB to thread that does it all.
-					 */
-					if (path.toFile().length() < 1000000){
-
-						executor.submit(
-								() -> filechecker(path)
-						);
-					}else {
-
-
-						executor.submit(
-								() -> filehandler(path)
-						);
-					}
+					executor.submit(
+							() -> filehandler(path)
+					);
 				}
 			}
 		} catch (IOException e) {
@@ -209,7 +124,7 @@ public class WordFinder
     Handles files, Spilts the file into lines and feeds the lines to the word checkers tread
      */
 	private static void filehandler(Path path) {
-//            System.out.println("running file handler");
+//            System.out.println("running file halder");
 //        System.out.println("checking file " + path);
 		try {
 			BufferedReader reader = Files.newBufferedReader(path);
@@ -238,34 +153,6 @@ public class WordFinder
 		threadCounter.decrementAndGet();
 	}
 
-    private static void filechecker(Path path) {
-        try {
-            BufferedReader reader = Files.newBufferedReader(path);
-            String line;
-            int linenumber = 0;
-            while ((line = reader.readLine()) != null) {
-                linenumber += 1;
-                
-                    String[] words = line.split("\\s+");
-                    for (String word : words) {
-                        if (lookingfor.equals(word)) synchronized (results) {
-                            final int lineNumber = linenumber;
-                            //System.out.println("Result at " + path + " on line " + linenumber);
-                            results.add(new Result() {
-                                @Override
-                                public Path path() {
-                                    return path;
-                                }
-                                @Override
-                                public int line() {
-                                    return lineNumber;
-                                }
-                            });
-                        }                                    }            }
-        } catch (IOException e) {
-        }
-        threadCounter.decrementAndGet();
-    }
 	/*
     Checks the lines for the word @param lookingfor
      */
@@ -276,7 +163,7 @@ public class WordFinder
 			String[] words = line.split("\\s+");
 			for (String word : words) {
 				if (lookingfor.equals(word)) synchronized (results) {
-                    //System.out.println(results.size());
+//                    System.out.println(results.size());
 //                    System.out.println("Result at "+path+" on line "+linenumber);
 					results.add(new Result() {
 						@Override
@@ -301,5 +188,3 @@ public class WordFinder
 		threadCounter.decrementAndGet();
 	}
 }
-
-
