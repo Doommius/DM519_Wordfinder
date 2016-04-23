@@ -19,7 +19,7 @@ public class Main {
         *     Where you you want to find the word.
         */
 // File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
-        File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder/2");
+        File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
         		/**
 		* The word you want to find.
         */
