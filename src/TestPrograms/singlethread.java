@@ -1,4 +1,4 @@
-package cp;
+package TestPrograms;
 
 /**
  * Created by Mark jervelund <Mark@jervelund.com> on 20-Apr-16.
