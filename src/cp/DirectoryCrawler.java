@@ -14,28 +14,25 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DirectoryCrawler2 {
-    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
-//    public static ExecutorService newFixedThreadPool(Runtime.getRuntime().availableProcessors()+1);
+public class DirectoryCrawler {
+
     private static String filetype = "txt";
-    private static String lookingfor;
+    private static String lookingforword;
     private static ArrayList results = new ArrayList<Result>();
-    private static AtomicInteger threadCounter = new AtomicInteger( 0 );
-    /*
+        /*
 
      */
     public static void main(String[] args) {
 
         long startTime = System.currentTimeMillis();
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
-        File StartingDir = new File("C:/Users/mark/OneDrive/sdu/testfolder");
+        File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder/2");
         String word = "ipsum";
-
+        System.out.println("Signle Thread");
         List<Result> list = run(word,StartingDir.toPath());
 
 
 //        list.forEach(i -> System.out.println("Word "+lookingfor+" found in file " + i.path()+ " at line "+i.line()));
-        System.out.println("Parsing complete");
 
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
@@ -49,23 +46,14 @@ public class DirectoryCrawler2 {
     public static List<Result> run(String word, Path path){
 //        ArrayList results = new ArrayList<Result>();
 //        Path path = Paths.get("C:/Users/user/OneDrive/randomuni");
-        lookingfor = word;
+        lookingforword = word;
         directoryCrawler(path);
-        System.out.println("Crawler is done");
-        System.out.println();
-        while(threadCounter.get() != 0){
+
+
             //wating for queue to empty
-        }
+
 //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
 
-        executor.shutdown();
-
-
-        try {
-            executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         System.out.println("Found " + results.size() + " Results");
         List list = null;
@@ -95,10 +83,8 @@ public class DirectoryCrawler2 {
 
                 } else if (path.toString().endsWith(filetype)) {
 //                        System.out.println(path.toString());
-                    threadCounter.incrementAndGet();
-                    executor.submit(
-                            () -> filehandler(path)
-                    );
+                    filehandler(path);
+
                 }
             }
         } catch (IOException e) {
@@ -108,24 +94,40 @@ public class DirectoryCrawler2 {
 
     /*
     Handles files, Spilts the file into lines and feeds the lines to the word checkers tread
+    @param path is a .txt file from a scanned directory
      */
     private static void filehandler(Path path) {
 //            System.out.println("running file halder");
 //        System.out.println("checking file " + path);
+
         try {
             BufferedReader reader = Files.newBufferedReader(path);
-//            System.out.println("opening file");
-            String line;
+            int linestothread = 1000;
             int linenumber = 0;
+            int n;
+//            String[] lines = new String[linestothread];
+            String line;
+
+
             while ((line = reader.readLine()) != null) {
+                String[] lines = new String[linestothread];
+                if (line.trim().length() > 0){lines[0] = line;}
+                n = 1;
+                while ( n < linestothread && ((line = reader.readLine()) != null)) {
+                    if (line.trim().length() > 1){
+                        //System.out.println("adding line to file "+path+" *"+line+"*");
+                        lines[n] = line;
+                        n++;
+                    }
+
+                }
                 linenumber += 1;
 //                    System.out.println(linenumber);
                 final int finalline = linenumber;
-                final String currentLine = line;
-                threadCounter.incrementAndGet();
-                executor.submit(
-                        () -> wordchecker(currentLine, path, finalline)
-                );
+                final String[] currentLines = lines;
+
+                wordchecker(currentLines, path, finalline);
+
 
 //                    executor.shutdown();
 //                    executor.awaitTermination( 1, TimeUnit.MINUTES );
@@ -136,42 +138,41 @@ public class DirectoryCrawler2 {
 
         }
 
-        threadCounter.decrementAndGet();
+
     }
 
     /*
     Checks the lines for the word @param lookingfor
      */
-    private static void wordchecker(String line, Path path, int linenumber) {
-//            System.out.println("running work checker");
-//            System.out.println(line);
-        {
-            String[] words = line.split("\\s+");
-            for (String word : words) {
-                if (lookingfor.equals(word)) synchronized (results) {
+    private static void wordchecker(String[] lines, Path path, int linenumbers) {
+        for (String line : lines) {
+            if (line != null) {
+               // System.out.println("1 " + line);
+                String[] words;
+                {
+                    words = line.split("\\s+");
+                    for (String word : words) {
+                        if (lookingforword.equals(word)) synchronized (results) {
 //                    System.out.println(results.size());
-//                    System.out.println("Result at "+path+" on line "+linenumber);
-                    results.add(new Result() {
-                        @Override
-                        public Path path() {
-                            return path;
+                           // System.out.println("Result at " + path + " on line " + linenumbers);
+                            final int linenuber = linenumbers;
+                            results.add(new Result() {
+                                @Override
+                                public Path path() {
+                                    return path;
+                                }
+
+                                @Override
+                                public int line() {
+                                    return linenuber;
+                                }
+                            });
                         }
-
-                        @Override
-                        public int line() {
-                            return linenumber;
-                        }
-                    });
-
-//                        executor.shutdownNow();
-
-
+                    }
                 }
+                linenumbers++;
             }
-
-
         }
-        threadCounter.decrementAndGet();
     }
 }
 
