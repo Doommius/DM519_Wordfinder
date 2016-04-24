@@ -1,7 +1,6 @@
 package cp;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -19,21 +18,25 @@ public class Main {
         *     Where you you want to find the word.
         */
 // File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
-        File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
+        File StartingDir = new File("C:/Users/mark-/Documents/test");
         		/**
 		* The word you want to find.
         */
+        System.out.println("starting main program");
         String word = "ipsum";
 
 //        find all
-        List<Result> list = null;
+        List<Result> list;
         long startTime = System.currentTimeMillis();
 
         list = WordFinder.findAll(word,StartingDir.toPath());
+//        list = WordFinder.findAll(word,StartingDir.toPath());
+//		Result result = WordFinder.findAny(word,StartingDir.toPath());
 
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println(totalTime + " ms");
+        //		System.out.println("Found result at "+result.path()+" on line "+result.line());
         System.out.println("Found " + list.size() + " Results");
 
 //

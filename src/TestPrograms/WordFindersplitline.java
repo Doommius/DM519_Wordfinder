@@ -1,4 +1,7 @@
-package cp;
+package TestPrograms;
+
+import cp.Result;
+import cp.Stats;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,7 +10,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -18,10 +24,12 @@ import java.util.regex.Pattern;
 /**
  * @author Fabrizio Montesi <fmontesi@imada.sdu.dk>
  */
-public class WordFinder {
+public class WordFindersplitline {
+
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     private static ArrayList results = new ArrayList<Result>();
     private static AtomicInteger threadCounter = new AtomicInteger(0);
+    private static ConcurrentHashMap< String, Integer > WordMap = new ConcurrentHashMap<>();
 
     /**
      * Finds all the (case-sensitive) occurrences of a word in a directory.
@@ -39,9 +47,8 @@ public class WordFinder {
      * @return a list of results ({@link Result}), which tell where the word was found
      */
     public static List<Result> findAll(String word, Path dir) {
-        System.out.println("pattern matcher");
-        Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
-        directoryCrawler(dir,lookingforpattern);
+        directoryCrawler(dir, word);
+
         while (threadCounter.get() != 0) {
             //wating for queue to empty
         }
@@ -69,8 +76,7 @@ public class WordFinder {
      * @return
      */
     public static Result findAny(String word, Path dir) {
-        Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
-        directoryCrawler(dir, lookingforpattern);
+        directoryCrawler(dir, word);
         while (results.isEmpty()) System.out.print("");
         //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
         executor.shutdownNow();
@@ -98,7 +104,7 @@ public class WordFinder {
              */
             @Override
             public int occurrences(String word) {
-                return findAll(word, dir).size();
+                return foundIn(word).size();
             }
 
             /**
@@ -159,63 +165,48 @@ public class WordFinder {
         @param dir, Recursive folder crawling
         if it finds a @param filetype sends the file to filehandler.
          */
-    public static void directoryCrawler(Path dir, Pattern lookingforpattern) {
-
-
+    public static void directoryCrawler(Path dir, String word) {
         try (
                 DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
         ) {
-            //                System.out.println(path);
-//                    System.out.println(path);
-            for (Path path : dirStream)
+            for (Path path : dirStream) {
                 if (Files.isDirectory(path)) {
-
-                    directoryCrawler(path, lookingforpattern);
-
+                    directoryCrawler(path, word);
                 } else if (path.toString().endsWith("txt")) {
-//                        System.out.println(path.toString());
-//					System.out.println(path.toFile().length());
-// 						System.out.println(path);
                     threadCounter.incrementAndGet();
                     /*
-                    Test with spilting all files up
+                    Test with giving small files < 3 MB to thread that does it all. the same as 10000 lines
 					 */
-//					executor.submit(
-//							() -> filehandler(path)
-//					);
-                    /*
-                    Test with giving small files < 1 MB to thread that does it all.
-					 */
-                    if (path.toFile().length() < ((1024 * 1024) * 3)) executor.submit(
-                            () -> filechecker(path, lookingforpattern)
-                    );
-                    else {
-                        filehandler(path, lookingforpattern);
-
+                    if (path.toFile().length() < ((1024 * 512))) {
+                        executor.submit(
+                                () -> filechecker(path, word)
+                        );
+                    } else {
+                        filehandler(path, word);
                     }
                 }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void filechecker(Path path, Pattern lookingforpattern) {
-
+    private static void filechecker(Path path, String lookingforword) {
         try {
-            Matcher match = lookingforpattern.matcher("");
             BufferedReader reader = Files.newBufferedReader(path);
             String line;
             int linenumber = 0;
             while ((line = reader.readLine()) != null) {
-                if (line != null) {
-                    // System.out.println("1 " + line);
-                    match.reset(line);
-                    while (match.find()) {
-//                        System.out.println(match.group(0));
+                linenumber += 1;
+
+                String[] words = line.split("\\s+");
+                for (String word : words) {
+                    if (lookingforword.equals(word)) {
+
+                        final int lineNumber = linenumber;
                         synchronized (results) {
-                            //System.out.println(results.size());
-//                            System.out.println("Result at " + path + " on line " + linenumbers);
-                            final int finallinenumber = linenumber;
+
+                            //System.out.println("Result at " + path + " on line " + linenumber);
                             results.add(new Result() {
                                 @Override
                                 public Path path() {
@@ -224,60 +215,58 @@ public class WordFinder {
 
                                 @Override
                                 public int line() {
-                                    return finallinenumber;
+                                    return lineNumber;
+                                }
+
+                                {
                                 }
                             });
                         }
-
-
                     }
-
                 }
-                linenumber++;
             }
         } catch (IOException e) {
+            System.out.println("Error with file "+ path);
         }
+
         threadCounter.decrementAndGet();
     }
 
     /*
     Handles files, Spilts the file into lines and feeds the lines to the word checkers tread
      */
-    private static void filehandler(Path path, Pattern lookingforpattern) {
-//            System.out.println("running file halder");
+    private static void filehandler(Path path, String lookingforword) {
+//        System.out.println("running file halder");
 //        System.out.println("checking file " + path);
-
         try {
             BufferedReader reader = Files.newBufferedReader(path);
             int linestothread = 1000;
             int linenumber = 0;
-            int n;
-//            String[] lines = new String[linestothread];
             String line;
+
+
             while ((line = reader.readLine()) != null) {
                 String[] lines = new String[linestothread];
                 if (line.trim().length() > 0) {
                     lines[0] = line;
                 }
-                n = 1;
+                int n = 1;
                 while (n < linestothread && ((line = reader.readLine()) != null)) {
                     if (line.trim().length() > 1) {
-                        //System.out.println("adding line to file "+path+" *"+line+"*");
                         lines[n] = line;
                         n++;
                     }
-
                 }
-                linenumber += 1;
-//                    System.out.println(linenumber);
+                linenumber++;
                 final int finalline = linenumber;
                 final String[] currentLines = lines;
                 threadCounter.incrementAndGet();
                 executor.submit(
-                        () -> wordchecker(currentLines, path, finalline,lookingforpattern)
+                        () -> wordchecker(currentLines, path, finalline, lookingforword)
                 );
             }
         } catch (IOException e) {
+            System.out.println("Error with file "+ path);
         }
         threadCounter.decrementAndGet();
     }
@@ -285,35 +274,42 @@ public class WordFinder {
     /*
     Checks the lines for the word @param lookingfor
      */
-    private static void wordchecker(String[] lines, Path path, int linenumbers, Pattern lookingforpattern) {
-        Matcher match = lookingforpattern.matcher("");
+    private static void wordchecker(String[] lines, Path path, int linenumbers, String lookingforword) {
         for (String line : lines) {
             if (line != null) {
-                    match.reset(line);
-                    while (match.find()) {
-//                        System.out.println(match.group(0));
-                            synchronized (results) {
-//                                 System.out.println(results.size());
-//                                 System.out.println("Result at " + path + " on line " + linenumbers);
-                                final int linenuber = linenumbers;
-                                results.add(new Result() {
-                                    @Override
-                                    public Path path() {
-                                        return path;
-                                    }
+                String[] words;
+                words = line.split("\\s+");
+                for (String word : words) {
+                    if (lookingforword.equals(word)) {
+                        synchronized (results) {
+//                            System.out.println(results.size());
+//                            System.out.println("Result at " + path + " on line " + linenumbers);
+                            final int linenuber = linenumbers;
+                            results.add(new Result() {
+                                @Override
+                                public Path path() {
+                                    return path;
+                                }
 
-                                    @Override
-                                    public int line() {
-                                        return linenuber;
-                                    }
-                                });
-                            }
-
+                                @Override
+                                public int line() {
+                                    return linenuber;
+                                }
+                            });
+                        }
                     }
                 }
+
                 linenumbers++;
             }
-
+        }
         threadCounter.decrementAndGet();
     }
+
+
+private static Map< String, Integer > WordOccurrences(Path path){
+
+
+    return null;
+}
 }

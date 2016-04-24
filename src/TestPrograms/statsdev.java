@@ -1,4 +1,6 @@
-package cp;
+package TestPrograms;
+
+import cp.Stats;
 
 import java.nio.file.Path;
 
@@ -7,7 +9,7 @@ import java.nio.file.Path;
  */
 public class statsdev {
 
-    public static Stats stats( Path dir )
+    public static Stats stats(Path dir )
     {
 
 
