@@ -39,18 +39,21 @@ public class WordFinder {
      * @param word the word to find (does not contain whitespaces or punctuation)
      * @param dir  the directory to search
      * @return a list of results ({@link Result}), which tell where the word was found
+     *
      */
+
     public static List<Result> findAll(String word, Path dir) {
+        //Checks if the executer is running, if its not it starts one.
         if (executor.isShutdown()) {
             executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
         }
-        System.out.println("pattern matcher");
+        //compiles the input word into a regex pattern that matches with whitespace+word+whitespace
         Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir, lookingforpattern);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
         }
-        //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
+        //When all tasks are finished the threads will be shut down.
         executor.shutdown();
         try {
             executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
@@ -79,8 +82,8 @@ public class WordFinder {
         }
         Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir, lookingforpattern);
-        while (results.isEmpty()) System.out.print("");
-        //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
+        while (results.isEmpty())
+        //When all tasks are finished the threads will be shut down.
         executor.shutdownNow();
         Result result = (Result) results.get(0);
         //System.out.println("Found result at "+result.path()+" on line "+result.line());
@@ -356,11 +359,12 @@ public class WordFinder {
     }
 
     private static Map<String, Integer> WordOccurrens(Path dir) {
-        System.out.println("making map");
+//        System.out.println("making map");
         WordOccurrenDirectoryCrawler(dir);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
         }
+        //When all tasks are finished the threads will be shut down.
         executor.shutdown();
         try {
             executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
@@ -373,7 +377,7 @@ public class WordFinder {
     }
 
     private static void WordOccurrenDirectoryCrawler(Path dir) {
-        System.out.println(dir);
+//        System.out.println(dir);
         try (
                 DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
         ) {
