@@ -40,7 +40,7 @@ public class Concurrentpatternmatcher {
      */
     public static List<Result> findAll(String word, Path dir) {
         System.out.println("pattern matcher");
-        Pattern lookingforpattern = Pattern.compile(".*\\b" + word + "\\b.*");
+        Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir,lookingforpattern);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
@@ -69,7 +69,7 @@ public class Concurrentpatternmatcher {
      * @return
      */
     public static Result findAny(String word, Path dir) {
-        Pattern lookingforpattern = Pattern.compile(".*\\b" + word + "\\b.*");
+        Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir, lookingforpattern);
         while (results.isEmpty()) System.out.print("");
         //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
@@ -210,7 +210,8 @@ public class Concurrentpatternmatcher {
                 if (line != null) {
                     // System.out.println("1 " + line);
                     match.reset(line);
-                    if (match.matches()) {
+                    while (match.find()) {
+//                        System.out.println(match.group(0));
                         synchronized (results) {
                             //System.out.println(results.size());
 //                            System.out.println("Result at " + path + " on line " + linenumbers);
@@ -291,7 +292,8 @@ public class Concurrentpatternmatcher {
         for (String line : lines) {
             if (line != null) {
                     match.reset(line);
-                    if (match.matches()) {
+                    while (match.find()) {
+//                        System.out.println(match.group(0));
                             synchronized (results) {
 //                                 System.out.println(results.size());
 //                                 System.out.println("Result at " + path + " on line " + linenumbers);

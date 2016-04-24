@@ -75,7 +75,7 @@ public class singlethread
 
     public static void main( String[] args )
     {
-        Path dir = Paths.get( "C:/Users/Mark/Documents/test/large files" );
+        Path dir = Paths.get( "C:/Users/mark-/Documents/test" );
         doAndMeasure( "Great!", () -> System.out.println( visit( dir ) ) );
 
 		/* doAndMeasure( "Loop", () -> {

@@ -29,7 +29,7 @@ public class patternmatcher {
 
         long startTime = System.currentTimeMillis();
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
-        File StartingDir = new File("C:/Users/Mark/Documents/test/2/4");
+        File StartingDir = new File("C:/Users/mark-/Documents/test");
         String lookingforword = "ipsum";
         System.out.println("Pattern single thread");
         List<Result> list = run(lookingforword, StartingDir.toPath());
@@ -49,7 +49,7 @@ public class patternmatcher {
     public static List<Result> run(String lookingforword, Path path) {
 //        ArrayList results = new ArrayList<Result>();
 //        Path path = Paths.get("C:/Users/user/OneDrive/randomuni");
-        Pattern lookingforpattern = Pattern.compile(".*\\b" + lookingforword + "\\b.*");
+        Pattern lookingforpattern = Pattern.compile("\\s" + lookingforword + "\\s");
         directoryCrawler(path, lookingforpattern);
 
 
@@ -142,7 +142,9 @@ public class patternmatcher {
             if (line != null) {
                 // System.out.println("1 " + line);
                 match.reset(line);
-                if (match.matches()) {
+
+                while (match.find()) {
+//                    System.out.println(match.group(0));
                     synchronized (results) {
                            //System.out.println(results.size());
 //                            System.out.println("Result at " + path + " on line " + linenumbers);

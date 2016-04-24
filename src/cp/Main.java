@@ -19,7 +19,7 @@ public class Main {
         *     Where you you want to find the word.
         */
 // File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
-        File StartingDir = new File("C:/Users/Mark/Documents/test/large files/");
+        File StartingDir = new File("C:/Users/mark-/Documents/test");
         		/**
 		* The word you want to find.
         */
@@ -30,8 +30,8 @@ public class Main {
         List<Result> list;
         long startTime = System.currentTimeMillis();
 
-//        list = Concurrentpatternmatcher.findAll(word,StartingDir.toPath());
-        list = WordFinder.findAll(word,StartingDir.toPath());
+        list = Concurrentpatternmatcher.findAll(word,StartingDir.toPath());
+//        list = WordFinder.findAll(word,StartingDir.toPath());
 //		Result result = WordFinder.findAny(word,StartingDir.toPath());
 
         long endTime = System.currentTimeMillis();
