@@ -62,7 +62,7 @@ public class singlethread
                     if ( path.toString().endsWith( ".txt" ) ) {
                         System.out.println( path.toString() );
                         // total += countWordsStream( path );
-                        total += countWordsSomehow( path );
+                        total += countWordsStream( path );
                     }
                 }
             }
@@ -75,7 +75,7 @@ public class singlethread
 
     public static void main( String[] args )
     {
-        Path dir = Paths.get( "C:/Users/Mark/Documents/Crashtest" );
+        Path dir = Paths.get( "C:/Users/Mark/Documents/test/large files" );
         doAndMeasure( "Great!", () -> System.out.println( visit( dir ) ) );
 
 		/* doAndMeasure( "Loop", () -> {

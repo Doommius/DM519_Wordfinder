@@ -24,7 +24,7 @@ public class DirectoryCrawler {
 
         long startTime = System.currentTimeMillis();
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
-        File StartingDir = new File("C:/Users/Mark/Documents/test/2/4");
+        File StartingDir = new File("C:/Users/Mark/Documents/test/large files/4");
         String lookingforword = "ipsum";
         System.out.println("Single Thread");
         List<Result> list = run(lookingforword,StartingDir.toPath());

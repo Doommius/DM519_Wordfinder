@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -21,9 +23,10 @@ import java.util.regex.Pattern;
  */
 public class WordFinder {
 
-    private static ExecutorService executor = Executors.newFixedThreadPool(4);
+    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     private static ArrayList results = new ArrayList<Result>();
     private static AtomicInteger threadCounter = new AtomicInteger(0);
+    private static ConcurrentHashMap< String, Integer > WordMap = new ConcurrentHashMap<>();
 
     /**
      * Finds all the (case-sensitive) occurrences of a word in a directory.
@@ -98,7 +101,7 @@ public class WordFinder {
              */
             @Override
             public int occurrences(String word) {
-                return findAll(word, dir).size();
+                return foundIn(word).size();
             }
 
             /**
@@ -220,7 +223,9 @@ public class WordFinder {
                 }
             }
         } catch (IOException e) {
+            System.out.println("Error with file "+ path);
         }
+
         threadCounter.decrementAndGet();
     }
 
@@ -258,6 +263,7 @@ public class WordFinder {
                 );
             }
         } catch (IOException e) {
+            System.out.println("Error with file "+ path);
         }
         threadCounter.decrementAndGet();
     }
@@ -296,4 +302,11 @@ public class WordFinder {
         }
         threadCounter.decrementAndGet();
     }
+
+
+private static Map< String, Integer > WordOccurrences(Path path){
+
+
+    return null;
+}
 }
