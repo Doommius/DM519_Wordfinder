@@ -1,7 +1,6 @@
 package cp;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -30,7 +29,7 @@ public class Main {
         List<Result> list;
         long startTime = System.currentTimeMillis();
 
-        list = Concurrentpatternmatcher.findAll(word,StartingDir.toPath());
+        list = WordFinder.findAll(word,StartingDir.toPath());
 //        list = WordFinder.findAll(word,StartingDir.toPath());
 //		Result result = WordFinder.findAny(word,StartingDir.toPath());
 
