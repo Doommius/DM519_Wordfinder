@@ -18,7 +18,7 @@ public class Main {
          *     Where you you want to find the word.
          */
 // File StartingDir = new File("C:/Users/Mark/Documents/test/testfolder");
-        File StartingDir = new File("C:/Users/Mark/Documents/test/large files/4");
+        File StartingDir = new File("C:/Users/Mark/Documents/test/large files/3");
         //C:\Users\mark-\Documents\test\lots of files
         /**
          * The word you want to find.
@@ -29,13 +29,11 @@ public class Main {
         List<Result> list;
         List<String> words;
         long startTime = System.currentTimeMillis();
-
 //        list = WordFinder.findAll(word, StartingDir.toPath());
-
         System.out.println(WordFinder.stats(StartingDir.toPath()).leastFrequent());
-//        System.out.println(WordFinder.stats(StartingDir.toPath()).mostFrequent());
-//        words = WordFinder.stats(StartingDir.toPath()).words();
-
+        System.out.println(WordFinder.stats(StartingDir.toPath()).mostFrequent());
+        words = WordFinder.stats(StartingDir.toPath()).words();
+        words = WordFinder.stats(StartingDir.toPath()).wordsByOccurrences();
 //        Result result = WordFinder.findAny(word, StartingDir.toPath());
 
         long endTime = System.currentTimeMillis();
@@ -48,8 +46,7 @@ public class Main {
 //        find any test
 //        Result result = WordFinder2.findAny(word, StartingDir.toPath());
 //        System.out.println("Found result at " + result.path() + " on line " + result.line());
-//        WordFinder.stats(StartingDir.toPath());
-
+//        WordFinder.stats(StartingDir.toPath()
 //        list.forEach(i -> System.out.println("Word " + word + " found in file " + i.path() + " at line " + i.line()));
 
     }
