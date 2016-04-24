@@ -1,5 +1,7 @@
 package cp;
 
+import sun.security.pkcs11.wrapper.Functions;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -91,8 +93,10 @@ public class WordFinder {
      */
     public static Stats stats(Path dir) {
         return new Stats() {
+
             /**
              * Returns the number of times a word was found.
+             *
              * @param word the word
              * @return the number of times the word was found
              */
@@ -103,6 +107,7 @@ public class WordFinder {
 
             /**
              * Returns the list of results in which a word was found.
+             *
              * @param word the word
              * @return the list of results in which the word was found
              */
@@ -114,50 +119,71 @@ public class WordFinder {
 
             /**
              * Returns the word that was found the most times.
+             *
              * @return the word that was found the most times
              */
 
             @Override
             public String mostFrequent() {
-                return null;
+                Map<String, Integer> words = WordOccurrens(dir);
+                Map.Entry<String, Integer> maxEntry = null;
+
+                for (Map.Entry<String, Integer> entry : words.entrySet()) {
+                    if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+                        maxEntry = entry;
+                    }
+                }
+                return maxEntry.toString();
             }
 
             /**
              * Returns the word that was found the least times.
+             *
              * @return the word that was found the least times
              */
 
             @Override
             public String leastFrequent() {
-                Map<String,Integer> words = WordOccurrens(dir);
-                for( String key : words.keySet() ) {
-                    System.out.println( key + " -> " + words.get( key ) );
-                }
+                Map<String, Integer> words = WordOccurrens(dir);
+                Map.Entry<String, Integer> minEntry = null;
 
-                return null;
+                for (Map.Entry<String, Integer> entry : words.entrySet()) {
+                    if (minEntry == null || entry.getValue().compareTo(minEntry.getValue()) < 0) {
+                        minEntry = entry;
+                    }
+                }
+                return minEntry.toString();
             }
 
             /**
              * Returns a list of all the words found.
+             *
              * @return a list of all the words found
              */
 
             @Override
             public List<String> words() {
-                return null;
+                Map<String, Integer> words = WordOccurrens(dir);
+                ArrayList<String> list = new ArrayList<>();
+                for (String key : words.keySet()) {
+                    list.add(key);
+                }
+                return list;
             }
 
             /**
              * Returns a list of all the words found, ordered from the least frequently occurring (first of the list)
              * to the most frequently occurring (last of the list).
+             *
              * @return a list of all the words found, ordered from the least to the most frequently occurring
              */
             @Override
             public List<String> wordsByOccurrences() {
+                Map<String, Integer> words = WordOccurrens(dir);
                 return null;
             }
-        };
 
+        };
     }
 
     /*
@@ -271,7 +297,6 @@ public class WordFinder {
                         lines[n] = line;
                         n++;
                     }
-
                 }
                 linenumber += 1;
 //                    System.out.println(linenumber);
@@ -303,7 +328,6 @@ public class WordFinder {
                             public Path path() {
                                 return path;
                             }
-
                             @Override
                             public int line() {
                                 return linenuber;
@@ -319,10 +343,10 @@ public class WordFinder {
     }
 
     private static Map<String, Integer> WordOccurrens(Path dir){
+        System.out.println("making map");
         WordOccurrenDirectoryCrawler(dir);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
-
         }
         executor.shutdown();
         try {
@@ -336,8 +360,9 @@ public class WordFinder {
     }
 
     private static void WordOccurrenDirectoryCrawler(Path dir) {
+        System.out.println(dir);
         try (
-                DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
+                 DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
         ) {
             for (Path path : dirStream)
                 if (Files.isDirectory(path)) {
@@ -410,6 +435,7 @@ public class WordFinder {
 
             }
         }
+        threadCounter.decrementAndGet();
     }
 
     private static void WordOccurrencescounter(String[] words) {
