@@ -1,13 +1,14 @@
 package cp;
 
+import sun.security.pkcs11.wrapper.Functions;
+
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
  * @author Fabrizio Montesi <fmontesi@imada.sdu.dk>
  */
 public class WordFinder {
+    private static final Map<String, Integer> wordmap = new ConcurrentHashMap<>();
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
     private static ArrayList results = new ArrayList<Result>();
     private static AtomicInteger threadCounter = new AtomicInteger(0);
@@ -39,9 +41,12 @@ public class WordFinder {
      * @return a list of results ({@link Result}), which tell where the word was found
      */
     public static List<Result> findAll(String word, Path dir) {
+        if (executor.isShutdown()) {
+            executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        }
         System.out.println("pattern matcher");
         Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
-        directoryCrawler(dir,lookingforpattern);
+        directoryCrawler(dir, lookingforpattern);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
         }
@@ -69,6 +74,9 @@ public class WordFinder {
      * @return
      */
     public static Result findAny(String word, Path dir) {
+        if (executor.isShutdown()) {
+            executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        }
         Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir, lookingforpattern);
         while (results.isEmpty()) System.out.print("");
@@ -90,19 +98,26 @@ public class WordFinder {
      * @return the statistics of occurring words in the directory
      */
     public static Stats stats(Path dir) {
+        if (executor.isShutdown()) {
+            executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        }
+        Map<String, Integer> words = WordOccurrens(dir);
+
         return new Stats() {
             /**
              * Returns the number of times a word was found.
+             *
              * @param word the word
              * @return the number of times the word was found
              */
             @Override
             public int occurrences(String word) {
-                return findAll(word, dir).size();
+                return words.get(word);
             }
 
             /**
              * Returns the list of results in which a word was found.
+             *
              * @param word the word
              * @return the list of results in which the word was found
              */
@@ -114,45 +129,73 @@ public class WordFinder {
 
             /**
              * Returns the word that was found the most times.
+             *
              * @return the word that was found the most times
              */
 
             @Override
             public String mostFrequent() {
-                return null;
+
+                Map.Entry<String, Integer> maxEntry = null;
+                for (Map.Entry<String, Integer> entry : words.entrySet()) {
+                    if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+                        maxEntry = entry;
+                    }
+                }
+                return maxEntry.toString();
             }
 
             /**
              * Returns the word that was found the least times.
+             *
              * @return the word that was found the least times
              */
 
             @Override
             public String leastFrequent() {
-                return null;
+
+                Map.Entry<String, Integer> minEntry = null;
+
+                for (Map.Entry<String, Integer> entry : words.entrySet()) {
+                    if (minEntry == null || entry.getValue().compareTo(minEntry.getValue()) < 0) {
+                        minEntry = entry;
+                    }
+                }
+                return minEntry.toString();
             }
 
             /**
              * Returns a list of all the words found.
+             *
              * @return a list of all the words found
              */
 
             @Override
             public List<String> words() {
-                return null;
+
+                ArrayList<String> list = new ArrayList<>();
+                for (String key : words.keySet()) {
+                    list.add(key);
+                }
+                return list;
             }
 
             /**
              * Returns a list of all the words found, ordered from the least frequently occurring (first of the list)
              * to the most frequently occurring (last of the list).
+             *
              * @return a list of all the words found, ordered from the least to the most frequently occurring
              */
             @Override
             public List<String> wordsByOccurrences() {
-                return null;
+                List<String> list = new ArrayList<>();
+                words.entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue())
+                        .forEach(i -> list.add(i.getKey()));
+                return list;
             }
-        };
 
+        };
     }
 
     /*
@@ -160,8 +203,6 @@ public class WordFinder {
         if it finds a @param filetype sends the file to filehandler.
          */
     public static void directoryCrawler(Path dir, Pattern lookingforpattern) {
-
-
         try (
                 DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
         ) {
@@ -190,7 +231,9 @@ public class WordFinder {
                             () -> filechecker(path, lookingforpattern)
                     );
                     else {
-                        filehandler(path, lookingforpattern);
+                        executor.submit(() ->
+                                filehandler(path, lookingforpattern)
+                        );
 
                     }
                 }
@@ -266,7 +309,6 @@ public class WordFinder {
                         lines[n] = line;
                         n++;
                     }
-
                 }
                 linenumber += 1;
 //                    System.out.println(linenumber);
@@ -274,7 +316,7 @@ public class WordFinder {
                 final String[] currentLines = lines;
                 threadCounter.incrementAndGet();
                 executor.submit(
-                        () -> wordchecker(currentLines, path, finalline,lookingforpattern)
+                        () -> wordchecker(currentLines, path, finalline, lookingforpattern)
                 );
             }
         } catch (IOException e) {
@@ -289,31 +331,136 @@ public class WordFinder {
         Matcher match = lookingforpattern.matcher("");
         for (String line : lines) {
             if (line != null) {
-                    match.reset(line);
-                    while (match.find()) {
-//                        System.out.println(match.group(0));
-                            synchronized (results) {
-//                                 System.out.println(results.size());
-//                                 System.out.println("Result at " + path + " on line " + linenumbers);
-                                final int linenuber = linenumbers;
-                                results.add(new Result() {
-                                    @Override
-                                    public Path path() {
-                                        return path;
-                                    }
-
-                                    @Override
-                                    public int line() {
-                                        return linenuber;
-                                    }
-                                });
+                match.reset(line);
+                while (match.find()) {
+                    synchronized (results) {
+                        final int linenuber = linenumbers;
+                        results.add(new Result() {
+                            @Override
+                            public Path path() {
+                                return path;
                             }
 
+                            @Override
+                            public int line() {
+                                return linenuber;
+                            }
+                        });
                     }
                 }
-                linenumbers++;
             }
+            linenumbers++;
+        }
 
         threadCounter.decrementAndGet();
     }
+
+    private static Map<String, Integer> WordOccurrens(Path dir) {
+        System.out.println("making map");
+        WordOccurrenDirectoryCrawler(dir);
+        while (threadCounter.get() != 0) {
+            //wating for queue to empty
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return wordmap;
+
+
+    }
+
+    private static void WordOccurrenDirectoryCrawler(Path dir) {
+        System.out.println(dir);
+        try (
+                DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
+        ) {
+            for (Path path : dirStream)
+                if (Files.isDirectory(path)) {
+                    WordOccurrenDirectoryCrawler(path);
+                } else if (path.toString().endsWith("txt")) {
+                    threadCounter.incrementAndGet();
+                    if (path.toFile().length() < ((1024 * 1024) * 3)) executor.submit(
+                            () -> WordOccurrencesfileChecker(path)
+                    );
+                    else {
+                        WordOccurrencesfilehandler(path);
+                    }
+                }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void WordOccurrencesfileChecker(Path path) {
+        try (
+                BufferedReader reader = Files.newBufferedReader(path);
+        ) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.split("\\s+");
+                WordOccurrencescounter(words);
+            }
+        } catch (IOException e) {
+//            e.printStackTrace();
+            System.out.println("There was a problem with file " + path);
+        }
+        threadCounter.decrementAndGet();
+    }
+
+    private static void WordOccurrencesfilehandler(Path path) {
+        try {
+            BufferedReader reader = Files.newBufferedReader(path);
+            int linestothread = 1000;
+            int n;
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] lines = new String[linestothread];
+                if (line.trim().length() > 0) {
+                    lines[0] = line;
+                }
+                n = 1;
+                while (n < linestothread && ((line = reader.readLine()) != null)) {
+                    if (line.trim().length() > 1) {
+                        lines[n] = line;
+                        n++;
+                    }
+                }
+                final String[] currentLines = lines;
+                threadCounter.incrementAndGet();
+                executor.submit(
+                        () -> WordOccurrencescounterlist(currentLines)
+                );
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        threadCounter.decrementAndGet();
+    }
+
+    private static void WordOccurrencescounterlist(String[] lines) {
+        for (String line : lines) {
+            if (line != null) {
+                String[] words = line.split("\\s+");
+                WordOccurrencescounter(words);
+
+            }
+        }
+        threadCounter.decrementAndGet();
+    }
+
+    private static void WordOccurrencescounter(String[] words) {
+        for (String word : words) {
+            wordmap.compute(word, (k, v) -> {
+                if (v == null) {
+                    return 1;
+                } else {
+                    return v + 1;
+                }
+            });
+        }
+    }
+
 }
