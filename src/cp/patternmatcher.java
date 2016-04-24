@@ -1,4 +1,4 @@
-package TestPrograms;
+package cp;
 
 import cp.Result;
 
