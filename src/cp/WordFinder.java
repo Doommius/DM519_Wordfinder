@@ -40,17 +40,19 @@ public class WordFinder {
      * @param dir  the directory to search
      * @return a list of results ({@link Result}), which tell where the word was found
      */
+
     public static List<Result> findAll(String word, Path dir) {
+        //Checks if the executer is running, if its not it starts one.
         if (executor.isShutdown()) {
             executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
         }
-        System.out.println("pattern matcher");
+        //compiles the input word into a regex pattern that matches with whitespace+word+whitespace
         Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir, lookingforpattern);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
         }
-        //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
+        //When all tasks are finished the threads will be shut down.
         executor.shutdown();
         try {
             executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
@@ -79,9 +81,9 @@ public class WordFinder {
         }
         Pattern lookingforpattern = Pattern.compile("\\s" + word + "\\s");
         directoryCrawler(dir, lookingforpattern);
-        while (results.isEmpty()) System.out.print("");
-        //When queue is empty there should be a few tasks still in the pool that came from the queue when shutdown is called. they will be allowed to finish.
-        executor.shutdownNow();
+        while (results.isEmpty())
+            //When all tasks are finished the threads will be shut down.
+            executor.shutdownNow();
         Result result = (Result) results.get(0);
         //System.out.println("Found result at "+result.path()+" on line "+result.line());
         return result;
@@ -198,7 +200,7 @@ public class WordFinder {
         };
     }
 
-    /*
+    /**
         @param dir, Recursive folder crawling
         if it finds a @param filetype sends the file to filehandler.
          */
@@ -242,6 +244,11 @@ public class WordFinder {
         }
     }
 
+    /**
+     *  Checks the file at path for pattern lookingforpattern.
+     * @param path
+     * @param lookingforpattern
+     */
     private static void filechecker(Path path, Pattern lookingforpattern) {
 
         try {
@@ -283,8 +290,8 @@ public class WordFinder {
         threadCounter.decrementAndGet();
     }
 
-    /*
-    Handles files, Spilts the file into lines and feeds the lines to the word checkers tread
+    /**
+     * Handles files, Spilts the file into lines and feeds the lines to the word checkers tread
      */
     private static void filehandler(Path path, Pattern lookingforpattern) {
 //            System.out.println("running file halder");
@@ -324,8 +331,8 @@ public class WordFinder {
         threadCounter.decrementAndGet();
     }
 
-    /*
-    Checks the lines for the word @param lookingfor
+    /**
+    * Checks the lines for the word @param lookingfor
      */
     private static void wordchecker(String[] lines, Path path, int linenumbers, Pattern lookingforpattern) {
         Matcher match = lookingforpattern.matcher("");
@@ -355,12 +362,16 @@ public class WordFinder {
         threadCounter.decrementAndGet();
     }
 
+    /**
+     * calls the WordOccurrenDirectoryCrawler and sends all the files to be processed and waits for them to finish.
+     */
     private static Map<String, Integer> WordOccurrens(Path dir) {
-        System.out.println("making map");
+//        System.out.println("making map");
         WordOccurrenDirectoryCrawler(dir);
         while (threadCounter.get() != 0) {
             //wating for queue to empty
         }
+        //When all tasks are finished the threads will be shut down.
         executor.shutdown();
         try {
             executor.awaitTermination(480, TimeUnit.SECONDS); //waits here until executor is terminated or the time runs out.
@@ -372,8 +383,13 @@ public class WordFinder {
 
     }
 
+    /**
+     * scans a directory and checks if its a .txt file, or a directory.
+     * if its a directory its recursively calls itself.
+     * If its a .txt files its get send to the @link filechecker function if its size is below 3 MB and to the @link filehandler function if its above.
+     */
     private static void WordOccurrenDirectoryCrawler(Path dir) {
-        System.out.println(dir);
+//        System.out.println(dir);
         try (
                 DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)
         ) {
@@ -394,6 +410,9 @@ public class WordFinder {
         }
     }
 
+    /**
+     * takes a file a splits it into lines and runs the @WordOccurrencescounter function on it.
+     */
     private static void WordOccurrencesfileChecker(Path path) {
         try (
                 BufferedReader reader = Files.newBufferedReader(path);
@@ -404,11 +423,14 @@ public class WordFinder {
                 WordOccurrencescounter(words);
             }
         } catch (IOException e) {
-//            e.printStackTrace();
             System.out.println("There was a problem with file " + path);
         }
         threadCounter.decrementAndGet();
     }
+
+    /**
+     * takes a file and spilts it into chucks of 1000 lines and sends them to @WordOccurrencescounterlist
+     */
 
     private static void WordOccurrencesfilehandler(Path path) {
         try {
@@ -440,17 +462,22 @@ public class WordFinder {
         threadCounter.decrementAndGet();
     }
 
+    /**
+     * takes a list of lines and uses the @WordOccurrencescounter function on them,
+     */
     private static void WordOccurrencescounterlist(String[] lines) {
         for (String line : lines) {
             if (line != null) {
                 String[] words = line.split("\\s+");
                 WordOccurrencescounter(words);
-
             }
         }
         threadCounter.decrementAndGet();
     }
 
+    /**
+     * takes a line in a list of strings from adds them to the hashmap
+     */
     private static void WordOccurrencescounter(String[] words) {
         for (String word : words) {
             wordmap.compute(word, (k, v) -> {

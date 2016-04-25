@@ -1,4 +1,4 @@
-package TestPrograms;
+package cp;
 
 import cp.Result;
 
@@ -24,7 +24,7 @@ public class DirectoryCrawler {
 
         long startTime = System.currentTimeMillis();
         //test folder is around 800 Mbyte of lorem ipsum and other random .txt files
-        File StartingDir = new File("C:/Users/mark-/Documents/test");
+        File StartingDir = new File("C:/Users/mark-/Documents/test/1");
         String lookingforword = "ipsum";
         System.out.println("Single Thread");
         List<Result> list = run(lookingforword,StartingDir.toPath());
