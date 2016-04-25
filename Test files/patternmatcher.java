@@ -1,5 +1,3 @@
-package cp;
-
 import cp.Result;
 
 import java.io.BufferedReader;

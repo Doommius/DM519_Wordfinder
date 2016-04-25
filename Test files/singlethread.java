@@ -1,5 +1,3 @@
-package TestPrograms;
-
 /**
  * Created by Mark jervelund <Mark@jervelund.com> on 20-Apr-16.
  */
@@ -75,7 +73,7 @@ public class singlethread
 
     public static void main( String[] args )
     {
-        Path dir = Paths.get( "C:/Users/mark-/Documents/test" );
+        Path dir = Paths.get( "C:\\Users\\mark-\\Documents\\test\\1" );
         doAndMeasure( "Great!", () -> System.out.println( visit( dir ) ) );
 
 		/* doAndMeasure( "Loop", () -> {
