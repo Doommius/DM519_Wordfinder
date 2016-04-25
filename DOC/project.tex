@@ -1,0 +1,79 @@
+%Template by Mark Jervelund - D1 - 2015 - mjerv15@student.sdu.dk
+
+\documentclass[a4paper,10pt,titlepage]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{color}
+\usepackage{datenumber}
+\usepackage{venndiagram}
+\usepackage{chngcntr}
+\usepackage{listings}
+\setdatetoday
+\addtocounter{datenumber}{0} %date for diliverry standard is today
+\usepackage[margin=1in]{geometry}
+\setdatebynumber{\thedatenumber}
+\date{}
+\setcounter{secnumdepth}{0}
+\pagestyle{fancy}
+\fancyhf{}
+
+\newcommand{\Z}{\mathbb{Z}}
+\counterwithin*{equation}{section}
+
+\lhead{Course \(Concurrent\) \(Programming\) - \(DM519\)}
+%\rhead{Exam nr: number}
+\rfoot{Page  \thepage \, of \pageref{LastPage}}
+
+
+\begin{document}
+\begin{titlepage}
+\centering
+    \vspace*{2\baselineskip}
+    \huge
+    \bfseries
+    Exam project Word Finder \\
+
+    \normalfont
+	\huge
+     \(Concurrent\)  \(Programming\) \\ \( DM519\)  \\ [3\baselineskip]
+    \normalfont
+	\includegraphics[scale=0.2]{SDU_logo}\\
+	 
+	
+        \vfill\
+    Mark Jervelund - mjerv15 - mark@jervelund.com \\
+    \vspace{10mm}
+    IMADA \\
+    \vspace{5mm}
+    \textbf{\datedate}  \bf{} \\[2\baselineskip]
+\end{titlepage}
+\newpage
+\renewcommand{\thepage}{\roman{page}}% Roman numerals for page counter
+\tableofcontents
+
+\newpage
+\setcounter{page}{1}
+\renewcommand{\thepage}{\arabic{page}}
+
+\section{Specification}
+testsetsnef sdkfjods jpfsdhjf slkdfljsdlfl sdihfn sdfsdf sd fsd f
+
+\section{Design}
+
+\section{Implementation}
+
+\section{Testing}
+
+\section{Conclusion}
+
+\section{Appendix}
+
+\end{document}
